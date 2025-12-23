@@ -131,6 +131,8 @@ def train(data,
         lr = scheduler.get_last_lr()[0]
 
         duration = time.time() - start_time
+        duration = max(duration, 1e-8)
+
 
         assert not np.isnan(loss_val), 'Model diverged with loss = NaN'
 

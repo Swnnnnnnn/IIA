@@ -19,9 +19,9 @@ from subfunc.showdata import *
 # =============================================================
 
 # Data generation ---------------------------------------------
-num_layer = 3  # number of layers of mixing-MLP
-num_comp = 20  # number of components (dimension)
-num_data = 2**18  # number of data points
+num_layer = 2  # number of layers of mixing-MLP (changed from 3 to 2)
+num_comp = 10  # number of components (dimension) (changed from 20 to 10)
+num_data = 2**15  # number of data points (changed from 2**18 to 2**15)
 num_basis = 64  # number of frequencies of fourier bases
 modulate_range = [-2, 2]
 modulate_range2 = [-2, 2]
@@ -30,7 +30,7 @@ random_seed = 0  # random seed
 
 # select learning framework (igcl or itcl)
 # net_model = 'igcl'  # learn by IIA-GCL
-net_model, num_segment = 'itcl', 256  # learn by IIA-TCL
+net_model, num_segment = 'itcl', 256  # learn by IIA-TCL  num_segment: 256 -> 16
 
 
 # MLP ---------------------------------------------------------
@@ -53,12 +53,23 @@ summary_steps = int(1e4)  # interval to save summary
 apply_pca = True  # apply PCA for preprocessing or not
 weight_decay = 1e-5  # weight decay
 
+# For quick test ----------------------------------------------
+max_steps = 80_000
+summary_steps = 2_000
+checkpoint_steps = 20_000
+batch_size = 256
+
+
+
 
 # Other -------------------------------------------------------
 # # Note: save folder must be under ./storage
 train_dir_base = './storage'
 
-train_dir = os.path.join(train_dir_base, 'model')  # save directory (Caution!! this folder will be removed at first)
+import time
+exp_id = time.strftime("%Y%m%d_%H%M%S")
+train_dir = os.path.join(train_dir_base, f"model_{exp_id}")
+
 
 saveparmpath = os.path.join(train_dir, 'parm.pkl')  # file name to save parameters
 
@@ -67,14 +78,15 @@ saveparmpath = os.path.join(train_dir, 'parm.pkl')  # file name to save paramete
 # =============================================================
 
 # Prepare save folder -----------------------------------------
-if train_dir.find('/storage/') > -1:
+if os.path.normpath(train_dir).startswith(os.path.normpath(train_dir_base)):
     if os.path.exists(train_dir):
         print('delete savefolder: %s...' % train_dir)
-        shutil.rmtree(train_dir)  # remove folder
+        shutil.rmtree(train_dir)
     print('make savefolder: %s...' % train_dir)
-    os.makedirs(train_dir)  # make folder
+    os.makedirs(train_dir)
 else:
-    assert False, 'savefolder looks wrong'
+    raise RuntimeError('savefolder looks wrong')
+
 
 # Generate sensor signal --------------------------------------
 x, s, y,_,_,_,_,_,_ = generate_artificial_data(num_comp=num_comp,
